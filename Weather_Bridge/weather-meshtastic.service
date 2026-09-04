@@ -1,0 +1,18 @@
+[Unit]
+Description=Bresser to Meshtastic Weather Bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/opt/weather-meshtastic/weather-meshtastic.env
+WorkingDirectory=/opt/weather-meshtastic
+ExecStart=/opt/weather-meshtastic/venv/bin/python /opt/weather-meshtastic/weather.py
+
+Restart=always
+RestartSec=10
+
+User=root
+
+[Install]
+WantedBy=multi-user.target
