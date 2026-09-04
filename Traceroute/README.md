@@ -2,7 +2,7 @@
 
 A small Python utility that performs Meshtastic traceroutes to a predefined list of nodes and stores the results for later analysis.
 
-It was mainly created to compare antenna performance over time by collecting repeated measurements under similar conditions.
+It was mainly created to compare performance over time by collecting repeated measurements under similar conditions.
 
 
 ## What It Records
