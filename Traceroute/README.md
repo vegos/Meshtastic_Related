@@ -40,9 +40,9 @@ The CSV file is intended for easy analysis in Excel, LibreOffice, Python, pandas
 The JSONL file keeps the raw traceroute information for more detailed analysis if needed.
 
 
-## Antenna Comparison
+## Comparison
 
-The most useful values for antenna A/B testing are:
+The most useful values for performance comparison are:
 
 
 ### Local TX SNR
@@ -140,7 +140,7 @@ Example using another node:
 ```bash
 python3 meshtastic_traceroute_logger.py \
   --antenna "Test Antenna" \
-  --host 192.168.1.234 \
+  --host 192.168.1.235 \
   --port 4403
 ```
 
