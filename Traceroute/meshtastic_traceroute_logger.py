@@ -1,3 +1,15 @@
+# ---------------------------------------------------------------------
+# Meshtastic Traceroute Logger
+#
+# A small Python utility that performs Meshtastic traceroutes to a 
+# predefined list of nodes and stores the results for later analysis.
+#
+# It was mainly created to compare performance over time by collecting 
+# repeated measurements under similar conditions.
+#
+# ©2026, Antonis Maglaras
+# ---------------------------------------------------------------------
+
 #!/usr/bin/env python3
 
 import argparse
@@ -20,8 +32,8 @@ from meshtastic.serial_interface import SerialInterface
 CONNECTION_TYPE = "tcp"
 
 # Defaults used when --host / --port are not specified
-DEFAULT_TCP_HOST = "192.168.100.15"
-DEFAULT_TCP_PORT = 4404
+DEFAULT_TCP_HOST = "192.168.100.200"
+DEFAULT_TCP_PORT = 4403
 
 # Used only if CONNECTION_TYPE = "serial"
 SERIAL_PORT = "/dev/ttyACM0"
@@ -35,6 +47,10 @@ HOP_LIMIT = 4
 # Timeout for each traceroute
 TRACEROUTE_TIMEOUT = 90
 
+# Retry once after a traceroute timeout
+RETRY_ON_TIMEOUT = True
+RETRY_DELAY = 30
+
 # Pause between traceroutes to avoid hammering the mesh
 DELAY_BETWEEN_TARGETS = 35
 
@@ -46,9 +62,7 @@ DELAY_BETWEEN_TARGETS = 35
 TARGETS = [
     ("Node-1", "!12345678"),
     ("Node-2", "!90123456"),
-    ("Node-3", "!78901234"),
-    ("Node-4", "!56789012"),
-    ("Node-5", "!34567890"), # etc
+    ("Node-3", "!78901234"), # etc...
 ]
 
 
@@ -57,7 +71,7 @@ TARGETS = [
 # ---------------------------------------------------------------------
 
 # Include the full logging folder path and name
-DATA_DIR = Path.home() / "/var/log/meshtastic-traceroute-data"
+DATA_DIR = Path("/var/log/meshtastic-traceroute-data")
 
 CSV_FILE = DATA_DIR / "traceroutes.csv"
 RAW_FILE = DATA_DIR / "traceroutes_raw.jsonl"
@@ -347,6 +361,65 @@ def run_traceroute(interface, target_id):
 
 
     return result
+
+
+def run_traceroute_with_retry(interface, target_id):
+    """
+    Run a traceroute and retry once after RETRY_DELAY seconds
+    if the first attempt ends with a TIMEOUT.
+
+    Retry information is stored in the existing 'error' field so
+    the CSV schema does not need to change.
+    """
+
+    result = run_traceroute(
+        interface,
+        target_id
+    )
+
+    # First attempt succeeded or failed for another reason
+    if (
+        not RETRY_ON_TIMEOUT
+        or result["error"] != "TIMEOUT"
+    ):
+        return result
+
+    print(
+        f"  TIMEOUT - retrying in "
+        f"{RETRY_DELAY}s..."
+    )
+
+    time.sleep(
+        RETRY_DELAY
+    )
+
+    retry_result = run_traceroute(
+        interface,
+        target_id
+    )
+
+    # Retry succeeded
+    if retry_result["success"]:
+        retry_result["error"] = (
+            "RETRY_SUCCESS_AFTER_TIMEOUT"
+        )
+
+        return retry_result
+
+    # Retry also timed out
+    if retry_result["error"] == "TIMEOUT":
+        retry_result["error"] = (
+            "TIMEOUT_AFTER_RETRY"
+        )
+    
+    # Retry failed for another reason
+    else:
+        retry_result["error"] = (
+            f"RETRY_FAILED_AFTER_TIMEOUT:"
+            f"{retry_result['error']}"
+        )
+
+    return retry_result
 
 
 # ---------------------------------------------------------------------
@@ -840,7 +913,7 @@ def main():
 
             try:
 
-                result = run_traceroute(
+                result = run_traceroute_with_retry(
                     interface,
                     target_id
                 )
@@ -902,8 +975,14 @@ def main():
 
             if result["success"]:
 
+                retry_note = (
+                    " (after retry)"
+                    if result["error"] == "RETRY_SUCCESS_AFTER_TIMEOUT"
+                    else ""
+                )
+
                 print(
-                    f"  OK"
+                    f"  OK{retry_note}"
                     f" | relays="
                     f"{row['forward_relays']}"
                     f" | TX SNR="
@@ -911,8 +990,7 @@ def main():
                     f" | RX SNR="
                     f"{row['local_rx_snr_db']} dB"
                 )
-
-
+                            
                 print(
                     f"  OUT: "
                     f"{row['forward_route']}"

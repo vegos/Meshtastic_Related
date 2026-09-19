@@ -25,6 +25,8 @@ For each target node, the script stores:
 - Local RX SNR
 - Full forward-route SNR values
 - Full return-route SNR values
+- Retry status after timeout
+
 
 Results are stored in:
 
@@ -37,9 +39,11 @@ The CSV file is intended for easy analysis in Excel, LibreOffice, Python, pandas
 
 The JSONL file keeps the raw traceroute information for more detailed analysis if needed.
 
+
 ## Antenna Comparison
 
 The most useful values for antenna A/B testing are:
+
 
 ### Local TX SNR
 
@@ -63,6 +67,7 @@ Local Node -> Target
 
 This is useful for evaluating how well the local antenna is transmitting.
 
+
 ### Local RX SNR
 
 The SNR of the final hop received by the local node on the return path.
@@ -79,6 +84,7 @@ This is useful for evaluating receive-side antenna performance.
 
 Intermediate SNR values are also stored, but they are generally less important when comparing only the antenna connected to the local node.
 
+
 ## Requirements
 
 - Python 3
@@ -89,6 +95,7 @@ Install Meshtastic:
 ```bash
 pip install meshtastic
 ```
+
 
 ## Configuration
 
@@ -107,6 +114,7 @@ TARGETS = [
 The first value is only a friendly label.
 
 The second value must be the actual Meshtastic node ID.
+
 
 ## Usage
 
@@ -136,6 +144,36 @@ python3 meshtastic_traceroute_logger.py \
   --port 4403
 ```
 
+
+## Retry Behavior
+
+If a traceroute request times out, the script waits for 30 seconds and automatically retries the same target once.
+
+The retry is performed only after a `TIMEOUT`. Other routing or parsing errors are not retried.
+
+Retry results are recorded in the existing `error` field:
+
+```text
+RETRY_SUCCESS_AFTER_TIMEOUT
+```
+
+means that the first attempt timed out but the retry succeeded.
+
+```text
+TIMEOUT_AFTER_RETRY
+```
+
+means that both the initial attempt and the retry timed out.
+
+If the retry fails for another reason, the error is recorded as:
+
+```text
+RETRY_FAILED_AFTER_TIMEOUT:<error>
+```
+
+This preserves the information that a retry was required, which can be useful when comparing link reliability over time.
+
+
 ## Recommended Test Method
 
 For a meaningful antenna comparison, try to keep the following unchanged:
@@ -164,6 +202,55 @@ Useful comparison metrics include:
 - Timeout rate
 
 Directly reachable nodes are particularly useful for antenna comparisons because no intermediate relay affects the RF path.
+
+
+## Example Output
+
+```text
+Connecting to Meshtastic node 192.168.1.234:4403 ...
+
+Local node : !7a31c8f2
+Endpoint   : 192.168.1.234:4403
+Antenna    : 6dB Omni
+Targets    : 6
+CSV        : /var/log/meshtastic-traceroute-data/traceroutes.csv
+
+[1/6] Traceroute -> Alpha (!12ab34cd)
+  OK | relays=0 | TX SNR=-3.50 dB | RX SNR=8.00 dB
+  OUT: !7a31c8f2 -> !12ab34cd
+  IN : !12ab34cd -> !7a31c8f2
+  Waiting 35s...
+
+[2/6] Traceroute -> Bravo (!56ef7890)
+  OK | relays=2 | TX SNR=-1.75 dB | RX SNR=7.50 dB
+  OUT: !7a31c8f2 -> !91bc22de -> !4f7a813c -> !56ef7890
+  IN : !56ef7890 -> !7a31c8f2
+  Waiting 35s...
+
+[3/6] Traceroute -> Charlie (!8c42de17)
+  OK | relays=0 | TX SNR=-8.00 dB | RX SNR=10.00 dB
+  OUT: !7a31c8f2 -> !8c42de17
+  IN : !8c42de17 -> !7a31c8f2
+  Waiting 35s...
+
+[4/6] Traceroute -> Delta (!3e9f10a6)
+  OK | relays=0 | TX SNR=-2.00 dB | RX SNR=10.00 dB
+  OUT: !7a31c8f2 -> !3e9f10a6
+  IN : !3e9f10a6 -> !7a31c8f2
+  Waiting 35s...
+
+[5/6] Traceroute -> Echo (!b74c29e1)
+  TIMEOUT - retrying in 30s...
+  OK (after retry) | relays=1 | TX SNR=-5.25 dB | RX SNR=-2.75 dB
+  OUT: !7a31c8f2 -> !6d28f4a9 -> !b74c29e1
+  IN : !b74c29e1 -> !7a31c8f2
+  Waiting 35s...
+
+[6/6] Traceroute -> Foxtrot (!d18a63f5)
+  TIMEOUT - retrying in 30s...
+  FAILED: TIMEOUT_AFTER_RETRY
+```
+
 
 ## Important
 
