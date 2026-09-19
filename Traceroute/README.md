@@ -90,7 +90,7 @@ Intermediate SNR values are also stored, but they are generally less important w
 * Python 3.10 or newer
 * `pip`
 * Meshtastic Python package
-* Network access to a Meshtastic node using the TCP API, or a directly connected serial device
+* Access to a Meshtastic node
 * Write permission to the configured log directory
 
 For Debian/Ubuntu systems, the required Python packages can be installed with:
@@ -266,7 +266,7 @@ For a meaningful performance comparison, try to keep the following unchanged:
 - Target nodes
 - Measurement times
 
-Collect several days of data with each antenna.
+Collect several days of data with each test setup.  
 
 Useful comparison metrics include:
 
@@ -278,7 +278,7 @@ Useful comparison metrics include:
 - Route stability
 - Timeout rate
 
-Directly reachable nodes are particularly useful for antenna comparisons because no intermediate relay affects the RF path.
+Directly reachable nodes are particularly useful for performance comparisons because no intermediate relay affects the RF path.
 
 
 ## Example Output
