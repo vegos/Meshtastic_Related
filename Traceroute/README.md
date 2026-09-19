@@ -259,15 +259,15 @@ CSV        : /var/log/meshtastic-traceroute-data/traceroutes.csv
 >
 > Meshtastic uses a shared, low-bandwidth LoRa radio channel.
 >
-> Traceroute traffic consumes airtime on every node involved in the route and excessive use can negatively affect the mesh for everyone.
+> Traceroute traffic **consumes airtime** on every node involved in the route and excessive use **can negatively affect the mesh for everyone**.
 >
 > Traceroute should be treated as a diagnostic tool, not as a continuous monitoring mechanism.
 
 The script intentionally waits between traceroute requests.
 
-Do not reduce the delay aggressively and do not run the script at unnecessarily short intervals.
+**Do not reduce the delay aggressively** and do not run the script at unnecessarily short intervals.
 
-For long-term antenna or propagation testing, one or two measurements per day are usually more than enough. Avoid frequent or continuous execution.
+For long-term antenna or propagation testing, **one or two measurements per day** are usually more than enough. Avoid frequent or continuous execution.
 
 ## Disclaimer
 
