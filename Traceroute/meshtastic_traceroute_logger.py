@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # ---------------------------------------------------------------------
 # Meshtastic Traceroute Logger
 #
@@ -9,8 +11,6 @@
 #
 # ©2026, Antonis Maglaras
 # ---------------------------------------------------------------------
-
-#!/usr/bin/env python3
 
 import argparse
 import csv
