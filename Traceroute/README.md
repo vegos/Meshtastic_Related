@@ -216,6 +216,11 @@ python3 meshtastic_traceroute_logger.py \
   --port 4403
 ```
 
+### Note
+
+Network access to a Meshtastic node is normally provided through the TCP API.  
+Serial connections are also supported by changing `CONNECTION_TYPE` and `SERIAL_PORT` in the script.  
+
 
 ## Retry Behavior
 
@@ -248,7 +253,7 @@ This preserves the information that a retry was required, which can be useful wh
 
 ## Recommended Test Method
 
-For a meaningful antenna comparison, try to keep the following unchanged:
+For a meaningful performance comparison, try to keep the following unchanged:  
 
 - Meshtastic node
 - Node position
