@@ -87,14 +87,86 @@ Intermediate SNR values are also stored, but they are generally less important w
 
 ## Requirements
 
-- Python 3
-- Meshtastic Python package
+* Python 3.10 or newer
+* `pip`
+* Meshtastic Python package
+* Network access to a Meshtastic node using the TCP API, or a directly connected serial device
+* Write permission to the configured log directory
 
-Install Meshtastic:
+For Debian/Ubuntu systems, the required Python packages can be installed with:
 
 ```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+```
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/vegos/Meshtastic_Related.git
+cd Meshtastic_Related/Traceroute
+```
+
+Creating a Python virtual environment is recommended:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Install the Meshtastic Python package:
+
+```bash
+pip install --upgrade pip
 pip install meshtastic
 ```
+
+The script does not currently require any additional third-party Python packages.
+
+Make the script executable if you want to run it directly:
+
+```bash
+chmod +x meshtastic_traceroute_logger.py
+```
+
+You can then run it either with Python:
+
+```bash
+python3 meshtastic_traceroute_logger.py \
+  --antenna "6dB Omni" \
+  --host 192.168.1.234 \
+  --port 4403
+```
+
+or, if the script is executable:
+
+```bash
+./meshtastic_traceroute_logger.py \
+  --antenna "6dB Omni" \
+  --host 192.168.1.234 \
+  --port 4403
+```
+
+### Log Directory
+
+By default, results are written to:
+
+```text
+/var/log/meshtastic-traceroute-data/
+```
+
+The user running the script must have permission to create and write to this directory.
+
+For example:
+
+```bash
+sudo mkdir -p /var/log/meshtastic-traceroute-data
+sudo chown $USER:$USER /var/log/meshtastic-traceroute-data
+```
+
+If you prefer another location, change the `DATA_DIR` setting inside the script.
 
 
 ## Configuration
