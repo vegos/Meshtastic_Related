@@ -11,6 +11,7 @@ from pubsub import pub
 from meshtastic.tcp_interface import TCPInterface
 from meshtastic.protobuf import telemetry_pb2, portnums_pb2
 
+from weather_bot import WeatherBot
 
 # ---------------------------------------------------------
 # Configuration
@@ -757,6 +758,16 @@ def main():
         on_meshtastic_receive,
         "meshtastic.receive",
     )
+    
+    weather_bot = WeatherBot(
+        get_weather_snapshot=get_weather_snapshot,
+        get_mesh_interface=get_mesh_interface,
+        connect_mesh_interface=connect_mesh_interface,
+        request_mesh_reconnect=request_mesh_reconnect,
+        log=log,
+    )
+
+    weather_bot.start()
 
     try:
         #
