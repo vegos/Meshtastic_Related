@@ -77,7 +77,7 @@ class WeatherBot:
         self.channel = int(
             os.environ.get(
                 "WEATHER_BOT_CHANNEL",
-                "3",
+                "0",
             )
         )
 
