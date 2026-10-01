@@ -1,3 +1,3 @@
-# Meshtastic Related Scripts
+# Meshtastic Related
 
-Scripts, tools, and experiments that I use and that may be useful to others. :)
+Scripts, tools, measurements and experiments that I use and that may be useful to others. :)
