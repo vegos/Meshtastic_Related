@@ -202,12 +202,6 @@ Mean_Z = mean(Z_i)  # descriptive only; not used for SWR
 6. For real communication comparisons, use the same node, cable, location, and orientation; fixed remote targets; and repeated **A–B–A** swaps. Record RSSI/SNR and packet success with comparable packets, preferably direct links with identical modulation and transmit power. Track mesh route changes separately.
 7. For more precise S11 at the target, perform a narrower sweep around 869.442 MHz and ideally calibrate OPEN–SHORT–LOAD at the final antenna connector.
 
-## Using this report on GitHub
+---
 
-Place this Markdown file and both PNGs in the same repository directory:
-
-```text
-ANTENNA_COMPARISON_869442.md
-swr_comparison.png
-matching_at_869442.png
-```
+©2026, Antonis Maglaras
