@@ -3,9 +3,33 @@
 import os
 import time
 import threading
+import unicodedata
 
 from pubsub import pub
 from meshtastic.protobuf import portnums_pb2
+
+
+def normalize_text(text):
+    """
+    Normalize text for command matching.
+
+    - Converts to lowercase
+    - Removes leading/trailing whitespace
+    - Removes Greek accents/diacritics
+    """
+
+    text = str(text).strip().lower()
+
+    normalized = unicodedata.normalize(
+        "NFD",
+        text,
+    )
+
+    return "".join(
+        char
+        for char in normalized
+        if unicodedata.category(char) != "Mn"
+    )
 
 
 def wind_direction_name(degrees):
@@ -69,10 +93,39 @@ class WeatherBot:
             in ("1", "true", "yes", "on")
         )
 
-        self.keyword = os.environ.get(
-            "WEATHER_BOT_KEYWORD",
-            "weather",
-        ).strip().lower()
+        # -------------------------------------------------
+        # Keywords
+        # -------------------------------------------------
+        #
+        # Preferred configuration:
+        #
+        # WEATHER_BOT_KEYWORDS=weather,θερμοκρασία,μετεωρολογικά,meteo
+        #
+        # WEATHER_BOT_KEYWORD is still supported for
+        # backwards compatibility.
+        #
+
+        keywords_env = os.environ.get(
+            "WEATHER_BOT_KEYWORDS"
+        )
+
+        if keywords_env:
+            raw_keywords = (
+                keywords_env.split(",")
+            )
+        else:
+            raw_keywords = [
+                os.environ.get(
+                    "WEATHER_BOT_KEYWORD",
+                    "weather",
+                )
+            ]
+
+        self.keywords = {
+            normalize_text(keyword)
+            for keyword in raw_keywords
+            if keyword.strip()
+        }
 
         self.channel = int(
             os.environ.get(
@@ -119,9 +172,13 @@ class WeatherBot:
             "meshtastic.receive",
         )
 
+        keywords_display = ", ".join(
+            sorted(self.keywords)
+        )
+
         self.log(
             "Weather bot enabled: "
-            f'keyword="{self.keyword}", '
+            f'keywords="{keywords_display}", '
             f"channel={self.channel}, "
             f"cooldown={self.cooldown}s, "
             f"reply_delay={self.reply_delay:.1f}s"
@@ -293,8 +350,20 @@ class WeatherBot:
             if not text:
                 return
 
-            # Exact keyword match, case-insensitive.
-            if text.lower() != self.keyword:
+            normalized_text = normalize_text(
+                text
+            )
+
+            # Exact keyword match.
+            #
+            # Matching is:
+            # - case-insensitive
+            # - accent-insensitive
+            #
+            # Example:
+            # "θερμοκρασία", "θερμοκρασια"
+            # and "ΘΕΡΜΟΚΡΑΣΙΑ" all match the same keyword.
+            if normalized_text not in self.keywords:
                 return
 
             requester = packet.get(

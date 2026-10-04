@@ -18,7 +18,7 @@ Weather telemetry is broadcast periodically (default: **15 minutes**) to avoid u
 
 The bridge can also respond to **on-demand Meshtastic Environment Metrics requests**.
 
-An optional **weather text bot** can monitor a Meshtastic channel and return current conditions when it receives a configurable keyword such as `weather`.
+An optional **weather text bot** can monitor a Meshtastic channel and return current conditions when it receives one of the configured keywords, such as `weather`, `temperature`, `meteo`, or equivalent commands in other languages.
 
 
 ## Requirements
@@ -71,7 +71,7 @@ MESH_RECONNECT_INTERVAL=10
 
 # Weather text bot
 WEATHER_BOT_ENABLED=true
-WEATHER_BOT_KEYWORD=weather
+WEATHER_BOT_KEYWORDS=weather,temperature,meteo
 WEATHER_BOT_CHANNEL=0
 WEATHER_BOT_COOLDOWN=60
 WEATHER_BOT_REPLY_DELAY=3
@@ -91,23 +91,31 @@ The local `weather-meshtastic.env` file may contain MQTT credentials and should 
 
 The bridge includes an optional Meshtastic text bot that can provide the current weather conditions on request.
 
-When enabled, the bot monitors a configured Meshtastic channel for a specific keyword.
+When enabled, the bot monitors a configured Meshtastic channel for any of the configured keywords.
 
-For example, with:
+For example:
 
 ```ini
 WEATHER_BOT_ENABLED=true
-WEATHER_BOT_KEYWORD=weather
+WEATHER_BOT_KEYWORDS=weather,θερμοκρασία,meteo
 WEATHER_BOT_CHANNEL=2
 WEATHER_BOT_COOLDOWN=60
 WEATHER_BOT_REPLY_DELAY=3
 WEATHER_BOT_LOCATION=Moschato
 ```
 
-sending:
+Sending any of the configured commands:
 
 ```text
 weather
+```
+
+```text
+θερμοκρασία
+```
+
+```text
+meteo
 ```
 
 on channel index `2` will cause the weather node to broadcast a reply on the same channel, for example:
@@ -115,6 +123,30 @@ on channel index `2` will cause the weather node to broadcast a reply on the sam
 ```text
 Moschato Weather / Current Conditions: Temp: 21.6°C | Hum 64% | Wind 3.1 m/s | Gust 3.5 m/s | Dir 315° (NW)
 ```
+
+Multiple commands can be configured by separating them with commas in `WEATHER_BOT_KEYWORDS`.
+
+Command matching is:
+
+- Case-insensitive
+- Accent/diacritic-insensitive
+- Exact-match only
+
+For example, the following commands are treated as equivalent:
+
+```text
+θερμοκρασία
+θερμοκρασια
+ΘΕΡΜΟΚΡΑΣΙΑ
+```
+
+However, because command matching is exact, a message such as:
+
+```text
+τι θερμοκρασία έχει;
+```
+
+will not trigger the bot unless that complete phrase is explicitly configured as a keyword.
 
 Wind direction is displayed both in degrees and as a **16-point compass direction**:
 
@@ -128,11 +160,13 @@ The bot uses the same weather data already collected from MQTT, so it does not p
 ### Bot Configuration
 
 - `WEATHER_BOT_ENABLED` — enables or disables the text bot.
-- `WEATHER_BOT_KEYWORD` — command that triggers a weather response. Matching is case-insensitive and requires an exact match.
+- `WEATHER_BOT_KEYWORDS` — comma-separated commands that trigger a weather response. Matching is case-insensitive and accent/diacritic-insensitive. Each command requires an exact match.
 - `WEATHER_BOT_CHANNEL` — Meshtastic channel index monitored by the bot.
 - `WEATHER_BOT_COOLDOWN` — minimum number of seconds between successful bot responses, to prevent repeated requests from generating excessive LoRa traffic.
 - `WEATHER_BOT_REPLY_DELAY` — delay in seconds before transmitting the response. This gives the requesting radio time to return from transmit to receive mode.
 - `WEATHER_BOT_LOCATION` — location name displayed at the beginning of the weather report.
+
+For backwards compatibility, the older `WEATHER_BOT_KEYWORD` variable is still supported when `WEATHER_BOT_KEYWORDS` is not defined.
 
 The text bot is optional. To disable it while keeping the normal Environment Metrics telemetry bridge running:
 
@@ -228,7 +262,7 @@ The maximum wind gust observed during each reporting interval is retained and in
 
 On-demand Environment Metrics requests received through Meshtastic are answered using the latest available weather data.
 
-When the optional weather text bot is enabled, incoming Meshtastic text messages on the configured channel are also monitored. A matching command (for example, `weather`) generates a text response using the same cached MQTT weather data.
+When the optional weather text bot is enabled, incoming Meshtastic text messages on the configured channel are also monitored. A matching command generates a text response using the same cached MQTT weather data.
 
 
 ---
