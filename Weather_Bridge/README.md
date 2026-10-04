@@ -18,7 +18,8 @@ Weather telemetry is broadcast periodically (default: **15 minutes**) to avoid u
 
 The bridge can also respond to **on-demand Meshtastic Environment Metrics requests**.
 
-An optional **weather text bot** can monitor a Meshtastic channel and return current conditions when it receives one of the configured keywords, such as `weather`, `temperature`, `meteo`, or equivalent commands in other languages.
+An optional **weather text bot** can monitor a Meshtastic channel and return current conditions when it receives one of the configured keywords, such as `weather`, `temperature`, `meteo`, `θερμοκρασία`, or equivalent commands in other languages.  
+
 
 
 ## Requirements
