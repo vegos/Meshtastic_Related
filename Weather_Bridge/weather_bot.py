@@ -99,7 +99,7 @@ class WeatherBot:
         #
         # Preferred configuration:
         #
-        # WEATHER_BOT_KEYWORDS=weather,θερμοκρασία,μετεωρολογικά,meteo
+        # WEATHER_BOT_KEYWORDS=weather,θερμοκρασία,meteo,καιρός
         #
         # WEATHER_BOT_KEYWORD is still supported for
         # backwards compatibility.
@@ -240,10 +240,15 @@ class WeatherBot:
         )
 
     # -----------------------------------------------------
-    # Send text
+    # Send public reply
     # -----------------------------------------------------
 
-    def send_reply(self, text, channel):
+    def send_reply(
+        self,
+        text,
+        channel,
+        reply_id=None,
+    ):
         iface = self.get_mesh_interface()
 
         if iface is None:
@@ -265,11 +270,18 @@ class WeatherBot:
             return False
 
         try:
+            kwargs = {
+                "destinationId": "^all",
+                "channelIndex": channel,
+                "wantAck": False,
+            }
+
+            if reply_id is not None:
+                kwargs["replyId"] = reply_id
+
             iface.sendText(
                 text,
-                destinationId="^all",
-                channelIndex=channel,
-                wantAck=False,
+                **kwargs,
             )
 
             return True
@@ -370,6 +382,10 @@ class WeatherBot:
                 "from"
             )
 
+            request_id = packet.get(
+                "id"
+            )
+
             self.log(
                 "Weather bot command received "
                 f"from node {requester}: "
@@ -417,13 +433,14 @@ class WeatherBot:
                 if self.send_reply(
                     message,
                     channel,
+                    reply_id=request_id,
                 ):
                     self.last_reply = (
                         time.monotonic()
                     )
 
                     self.log(
-                        "Weather bot reply sent: "
+                        "Weather bot public reply sent: "
                         f"{message}"
                     )
 
